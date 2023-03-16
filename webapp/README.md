@@ -3,7 +3,7 @@ This is a simple demo map webapp written using TypeScript, ReactJS, and Patternf
 
 This started from Patternfly Seed which is an open source build scaffolding utility for web apps. It provided an app layout with chrome (header/sidebar), routing, build pipeline, test suite, and some code quality tools. Basically, all the essentials. From there I added and removed things to get to where we are today.
 
-<img width="1058" alt="Out of box dashboard view of patternfly seed" src="https://user-images.githubusercontent.com/5942899/103803761-03a0a500-501f-11eb-870a-345d7d035e6b.png">
+<img width="1058" alt="screenshot of alpha version" src="./.screenshots/20230316.png">
 
 ## Quick-start for devs
 ```bash
@@ -104,6 +104,11 @@ ENV_2=http://2.myendpoint.com
 ```
 
 With that in place, you can use the values in your code like `console.log(process.env.ENV_1);`
+
+## How to deploy 
+Still working on getting this into containers the easy way. It's webpacked so you have options. Right now, I'm thinking I'll leverage Quarkus with Quinoa to provide a simple backend server integrated with npm that can serve the React out to clients and have room to grow in case we want to pair some backend functionality.
+* https://quarkiverse.github.io/quarkiverse-docs/quarkus-quinoa/dev/#getting-started
+
 
 ## Thanks and references
 * Thanks to jkeohan for this example code: https://codesandbox.io/s/d3-streetball-mecca-map-only-rsqpv?file=/src/components/Map/index_react_renders_map.js:0-2172 
