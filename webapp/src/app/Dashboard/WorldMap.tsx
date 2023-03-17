@@ -61,8 +61,8 @@ const WorldMap = (params) => {
     ///
     animationFrame((args) => {
         refreshTimer += args.delta
-        // if refresh timer is greater than 1 second, GET the data
-        if (refreshTimer >= 1) {
+        // if refresh timer is greater than 1/2 second, GET the data
+        if (refreshTimer >= 0.5) {
             refreshTimer = 0
             try {
                 axios.get(FLIGHTS_API_URL).then((response) => {
