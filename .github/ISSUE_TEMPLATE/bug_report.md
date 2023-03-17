@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve the react seed
+about: Create a report to help us improve the app
 title: ''
 labels: needs triage
 assignees: ''

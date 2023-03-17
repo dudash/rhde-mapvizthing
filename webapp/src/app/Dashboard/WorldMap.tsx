@@ -9,12 +9,12 @@ import axios from 'axios'
 import animationFrame from '../utils/animationFrame' 
 
 const uuid = require('react-uuid')
-const vamapjson = require('@app/data/VA-51-virginia-counties.json'); // cb_2015_virginia_county_20m
+// const vamapjson = require('@app/data/VA-51-virginia-counties.json'); // cb_2015_virginia_county_20m
 const mapjson = require('@app/data/us-counties-10m.json'); //counties, states
-const flightsapiurl = 'http://127.0.0.1:8080/ads-b-states' // TODO set this from ENV and dynamically somehow
-const TESTING_geojsonflightsapiurl = 'https://raw.githubusercontent.com/jkeohan/D3-Tutorials/3f3e4fb52aea827455fd4cc7c4893eb37f58e411/nyc.counties.json'
+const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://127.0.0.1:8080/ads-b-states'
+console.log("webapp is polling for flight data by talking to: " + FLIGHTS_API_URL);
 const pointdata: { name: string; coordinates: [number, number] }[] = [
-    { name: 'Farm', coordinates: [-77.560891, 38.967067] },
+    { name: 'Dulles Airport', coordinates: [-77.45653879999998, 38.9531162] },
 ]
 
 const aldieLat: number = 38.969463
@@ -26,14 +26,16 @@ const cy: number = -30
 /// The main component
 ///
 const WorldMap = (params) => {
+    // const [altmapgeos, setAltMapGeos] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [geographies, setGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [moreGeographies, setMoreGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [flightsData, setFlightsData] = useState<[] | Array<Feature<Geometry | null>>>([])
     var refreshTimer:number = 0
 
     useEffect(() => {
-        // this might be a better vecor map but it's not rendering at the moment - need to validate the json
-        //const vamapFeatures: Array<Feature<Geometry | null>> = ((feature(mapjson, vamapjson.objects.cb_2015_virginia_county_20m) as unknown) as FeatureCollection).features
+        // const vamapFeatures: Array<Feature<Geometry | null>> = ((feature(vamapjson, vamapjson.objects.cb_2015_virginia_county_20m) as unknown) as FeatureCollection).features
+        // setAltMapGeos(vamapFeatures)
+
         const mapFeatures: Array<Feature<Geometry | null>> = ((feature(mapjson, mapjson.objects.counties) as unknown) as FeatureCollection).features
         setGeographies(mapFeatures)
 
@@ -41,7 +43,7 @@ const WorldMap = (params) => {
         setMoreGeographies(moreMapFeatures)
 
         try {
-            axios.get(flightsapiurl).then((response) => {
+            axios.get(FLIGHTS_API_URL).then((response) => {
                 setFlightsData(response.data.states)
             });
         } catch (error) {
@@ -59,11 +61,11 @@ const WorldMap = (params) => {
     ///
     animationFrame((args) => {
         refreshTimer += args.delta
-        // if refresh timers is greated than 1 second, refresh the data
-        if (refreshTimer >= 0.1) {
+        // if refresh timer is greater than 1 second, GET the data
+        if (refreshTimer >= 1) {
             refreshTimer = 0
             try {
-                axios.get(flightsapiurl).then((response) => {
+                axios.get(FLIGHTS_API_URL).then((response) => {
                     setFlightsData(response.data.states)
                 });
             } catch (error) {
@@ -85,12 +87,31 @@ const WorldMap = (params) => {
         return 0
     }
 
+    const handleMarkerClick = (i: number) => {
+        alert(`Marker: ${JSON.stringify(pointdata[i])}`)
+    }
+
+    const handleFlightClick = (i: number) => {
+        alert(`Flight: ${JSON.stringify(flightsData[i])}`)
+    }
+
     ///
     /// The component returns a map, which is in the form of a SVG
     ///
     return (
         <>
             <svg width={scale * 3} height={scale * 3} viewBox="0 0 800 450">
+                {/* <g>
+                    {(altmapgeos as []).map((d, i) => (
+                        <path
+                            key={`path-${uuid()}`}
+                            d={geoPath().projection(projection)(d) as string}
+                            fill={`rgba(38,50,56,${(1 / (altmapgeos ? altmapgeos.length : 0)) * i})`}
+                            stroke="aliceblue"
+                            strokeWidth={0.5}
+                        />
+                    ))}
+                </g> */}
                 <g>
                     {(moreGeographies as []).map((d, i) => (
                         <path
@@ -122,7 +143,7 @@ const WorldMap = (params) => {
                             r={3}
                             fill="#E91E63"
                             stroke="#FFFFFF"
-                        // onClick={() => handleMarkerClick(i)}
+                            onClick={() => handleMarkerClick(i)}
                         />
                     ))}
                 </g>
@@ -135,7 +156,7 @@ const WorldMap = (params) => {
                         y={returnProjectionValueWhenValid([d.longitude, d.latitude], 1)}
                         width="5" height="5"
                         viewBox="0 0 512 512"
-                        // onClick={() => handleFlightClick(i)}
+                        onClick={() => handleFlightClick(i)}
                         >
                         <g className="airsvg-g" transform={`rotate( ${d.true_track} )`}>
                             <path className="airsvg-path1" d="M256,0C114.614,0,0,114.614,0,256s114.614,256,256,256s256-114.614,256-256S397.386,0,256,0z M256,448c-105.867,0-192-86.133-192-192S150.133,64,256,64s192,86.133,192,192S361.867,448,256,448z"/>
