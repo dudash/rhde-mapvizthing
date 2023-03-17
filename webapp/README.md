@@ -106,8 +106,7 @@ ENV_2=http://2.myendpoint.com
 With that in place, you can use the values in your code like `console.log(process.env.ENV_1);`
 
 ## How to deploy 
-Still working on getting this into containers the easy way. It's webpacked so you have options. Right now, I'm thinking I'll leverage Quarkus with Quinoa to provide a simple backend server integrated with npm that can serve the React out to clients and have room to grow in case we want to pair some backend functionality.
-* https://quarkiverse.github.io/quarkiverse-docs/quarkus-quinoa/dev/#getting-started
+Still working on getting this into containers the easy way. It's webpacked so you have options.
 
 
 ## Thanks and references
