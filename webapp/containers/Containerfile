@@ -1,0 +1,13 @@
+FROM registry.access.redhat.com/ubi8/nodejs-18 AS build
+WORKDIR /usr/src/app
+ADD package*.json ./
+RUN npm install
+RUN npm build
+
+FROM registry.access.redhat.com/ubi8/nodejs-18-minimal
+COPY --from=build /usr/src/app .
+ADD . .
+EXPOSE 8080
+USER 1001
+
+CMD ["npm", "start"]
