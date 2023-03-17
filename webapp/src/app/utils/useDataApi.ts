@@ -19,7 +19,7 @@ const useDataApi = (initialUrl, initialData) => {
                     setData([json]);
                     localStorage.setItem(url, JSON.stringify([json]));
                 } catch (err) {
-                    console.log('err', err);
+                    console.error('ERROR useDataApi - useEffect - err', err)
                 }
             }
             setIsLoading(false);
