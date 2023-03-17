@@ -6,6 +6,7 @@ import { geoEqualEarth, geoAlbersUsa, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
 import { Feature, FeatureCollection, Geometry } from 'geojson'
 import axios from 'axios'
+import animationFrame from '../utils/animationFrame' 
 
 const uuid = require('react-uuid')
 const vamapjson = require('@app/data/VA-51-virginia-counties.json'); // cb_2015_virginia_county_20m
@@ -28,6 +29,7 @@ const WorldMap = (params) => {
     const [geographies, setGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [moreGeographies, setMoreGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [flightsData, setFlightsData] = useState<[] | Array<Feature<Geometry | null>>>([])
+    var refreshTimer:number = 0
 
     useEffect(() => {
         // this might be a better vecor map but it's not rendering at the moment - need to validate the json
@@ -40,34 +42,37 @@ const WorldMap = (params) => {
 
         try {
             axios.get(flightsapiurl).then((response) => {
-                // console.log('GOT FLIGHTS, FEATURES=', response.data.features)
-                // const fd: Array<Feature<Geometry | null>> = ((feature(response.data, response.data.features) as unknown) as FeatureCollection).features
-                // console.log('GOT FLIGHTS - PUT IN FEATURES', fd)
                 setFlightsData(response.data.states)
             });
         } catch (error) {
-            console.error('error', error)
+            console.error('error fetching flight data from external API service', error)
         }
-        
-        // alternativecode to featch from flights API service
-        // fetch(flightsapiurl).then((response) => {
-        //     if (response.status !== 200) {
-        //         // eslint-disable-next-line no-console
-        //         console.log(`Houston we have a problem: ${response.status}`)
-        //         return
-        //     }
-        //     response.json().then((returnedData) => {
-        //         const fd: Array<Feature<Geometry | null>> = ((feature(returnedData, flight.objects) as unknown) as FeatureCollection).features
-        //         setFlightsData(fd)
-        //     })
-        // })
-
     }, [])
 
-    //
-    // config the map projection here
+    ///
+    /// config the map projection here
     ///
     const projection = geoAlbersUsa().scale(scale).translate([cx, cy])
+
+    ///
+    /// animations can go here - this times out very fast don't do much here or log anything
+    ///
+    animationFrame((args) => {
+        refreshTimer += args.delta
+        // if refresh timers is greated than 1 second, refresh the data
+        if (refreshTimer >= 0.1) {
+            refreshTimer = 0
+            try {
+                axios.get(flightsapiurl).then((response) => {
+                    setFlightsData(response.data.states)
+                });
+            } catch (error) {
+                console.error('error fetching flight data from external API service', error)
+            }
+            // console.log('refreshed data', args.delta)
+            // console.log('flights count: ', flightsData.length)
+        }
+    })
 
     ///
     /// Turn coordinate into a projection cx,cy
@@ -122,7 +127,7 @@ const WorldMap = (params) => {
                     ))}
                 </g>
                 <g>
-                    { flightsData.map((d, i) => (console.log(i, ' DATA', d) ))}
+                    {/* { flightsData.map((d, i) => (console.log(i, ' DATA', d) ))} */}
                     
                     {flightsData.map((d, i) => (
                         <svg className="airsvg" key={`marker-${uuid()}`}
@@ -130,6 +135,7 @@ const WorldMap = (params) => {
                         y={returnProjectionValueWhenValid([d.longitude, d.latitude], 1)}
                         width="5" height="5"
                         viewBox="0 0 512 512"
+                        // onClick={() => handleFlightClick(i)}
                         >
                         <g className="airsvg-g" transform={`rotate( ${d.true_track} )`}>
                             <path className="airsvg-path1" d="M256,0C114.614,0,0,114.614,0,256s114.614,256,256,256s256-114.614,256-256S397.386,0,256,0z M256,448c-105.867,0-192-86.133-192-192S150.133,64,256,64s192,86.133,192,192S361.867,448,256,448z"/>
