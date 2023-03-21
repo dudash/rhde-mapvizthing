@@ -1,11 +1,14 @@
 FROM registry.access.redhat.com/ubi8/nodejs-18 AS build
+LABEL io.redhatgov.mapvizthing.intermediate=true
 WORKDIR /usr/src/app
-ADD package*.json ./
+ADD ../package*.json ./
 RUN npm install
-RUN npm build
+ADD ../. .
+RUN npm run build
+RUN ["/bin/bash", "-c", "find . ! -name dist ! -name node_modules -maxdepth 1 -mindepth 1 -exec rm -rf {} \\;"]
 
 FROM registry.access.redhat.com/ubi8/nodejs-18-minimal
-COPY --from=build /usr/src/app .
+COPY --from=build /usr/src/app ./
 ADD . .
 EXPOSE 8080
 USER 1001
