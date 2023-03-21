@@ -29,8 +29,8 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ${{ defaultContext }}/webapp
-          file: ${{ context }}/containers/Containerfile
+          context: ./webapp
+          file: ./webapp/containers/Containerfile
           push: true
           tags: |
             quay.io/jasonredhat/rhde-demo:${{ steps.get_version.outputs.VERSION }}
