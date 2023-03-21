@@ -32,3 +32,5 @@ jobs:
           repository: jasonredhat/rhde-demo
           tags: ${{ steps.get_version.outputs.VERSION }}
           add_git_labels: true
+          context: "{{defaultContext}}:webapp"
+          file: "{context}/Containerfile"
