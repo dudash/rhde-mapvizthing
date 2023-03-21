@@ -15,13 +15,13 @@ const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://
 console.log("webapp is polling for flight data by talking to: " + FLIGHTS_API_URL);
 const pointdata: { name: string; coordinates: [number, number] }[] = [
     { name: 'Dulles Airport', coordinates: [-77.45653879999998, 38.9531162] },
+    { name: 'National Airport', coordinates: [-77.035999856, 38.851329928] },
+    { name: 'BWI Airport', coordinates: [-76.667663996, 39.171832646] }
 ]
 
-const aldieLat: number = 38.969463
-const aldieLon: number = -77.559401
 const scale: number = 4000
 const cx: number = -990
-const cy: number = -30
+const cy: number = -10
 ///
 /// The main component
 ///
@@ -31,6 +31,9 @@ const WorldMap = (params) => {
     const [moreGeographies, setMoreGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [flightsData, setFlightsData] = useState<[] | Array<Feature<Geometry | null>>>([])
     var refreshTimer:number = 0
+    var currentCx:number = cx
+    var currentCy:number = cy
+    var currentScale:number = scale
 
     useEffect(() => {
         // const vamapFeatures: Array<Feature<Geometry | null>> = ((feature(vamapjson, vamapjson.objects.cb_2015_virginia_county_20m) as unknown) as FeatureCollection).features
@@ -87,12 +90,24 @@ const WorldMap = (params) => {
         return 0
     }
 
+    // Turn projection into a coordinate lat,lon
+    function returnCoordinateValueWhenValid(point: [number, number], index: number) {
+        const retVal: [number, number] | null = projection.invert(point)
+        if (retVal?.length) {
+            return retVal[index]
+        }
+        return 0
+    }
+    
+    ///
+    /// handle the click event for a marker
+    ///
     const handleMarkerClick = (i: number) => {
-        alert(`Marker: ${JSON.stringify(pointdata[i])}`)
+        alert(`Marker: ${pointdata[i].name}`)
     }
 
     const handleFlightClick = (i: number) => {
-        alert(`Flight: ${JSON.stringify(flightsData[i])}`)
+        alert(`Flight:${flightsData[i].callsign}, Heading:${flightsData[i].true_track}, LAT/LON:${flightsData[i].latitude},${flightsData[i].longitude}`)
     }
 
     ///
@@ -140,9 +155,10 @@ const WorldMap = (params) => {
                             key={`marker-${uuid()}`}
                             cx={returnProjectionValueWhenValid(d.coordinates, 0)}
                             cy={returnProjectionValueWhenValid(d.coordinates, 1)}
-                            r={3}
+                            r={1}
                             fill="#E91E63"
                             stroke="#FFFFFF"
+                            strokeWidth={.5}
                             onClick={() => handleMarkerClick(i)}
                         />
                     ))}

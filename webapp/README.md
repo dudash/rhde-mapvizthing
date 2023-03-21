@@ -105,9 +105,8 @@ ENV_2=http://2.myendpoint.com
 
 With that in place, you can use the values in your code like `console.log(process.env.ENV_1);`
 
-## How to deploy 
-Still working on getting this into containers the easy way. It's webpacked so you have options.
-
+## How to build containers to deploy this 
+Still working on getting this into containers the easy way. It's webpacked so you have options. Most likely github actions will the to automation and push to Quay.io
 
 ## Thanks and references
 * Thanks to jkeohan for this example code: https://codesandbox.io/s/d3-streetball-mecca-map-only-rsqpv?file=/src/components/Map/index_react_renders_map.js:0-2172 
