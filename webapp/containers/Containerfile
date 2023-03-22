@@ -1,6 +1,7 @@
 FROM registry.access.redhat.com/ubi8/nodejs-18 AS build
 LABEL io.redhatgov.mapvizthing.intermediate=true
 WORKDIR /usr/src/app
+USER root
 RUN chmod -R 777 /usr/src/app
 ADD ../package*.json ./
 RUN npm install
