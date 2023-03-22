@@ -1,16 +1,17 @@
 FROM registry.access.redhat.com/ubi8/nodejs-18 AS build
 LABEL io.redhatgov.mapvizthing.intermediate=true
-WORKDIR /usr/src/app
+WORKDIR /opt/app-root/src
 USER root
-RUN chmod -R 777 /usr/src/app
+RUN chmod -R 777 /opt/app-root/src
 ADD ../package*.json ./
 RUN npm install
 ADD ../. .
 RUN npm run build
-RUN ["/bin/bash", "-c", "find . ! -name dist ! -name node_modules -maxdepth 1 -mindepth 1 -exec rm -rf {} \\;"]
+#RUN ["/bin/bash", "-c", "find . ! -name dist ! -name node_modules -maxdepth 1 -mindepth 1 -exec rm -rf {} \\;"]
+RUN ["/bin/bash", "-c", "rm -rf ./__mocks__ ./.screenshots ./.storybook ./stories ./containers ./src"]
 
 FROM registry.access.redhat.com/ubi8/nodejs-18-minimal
-COPY --from=build /usr/src/app ./
+COPY --from=build /opt/app-root/src ./
 EXPOSE 8080
 USER 1001
 CMD ["npm", "start"]
