@@ -33,4 +33,4 @@ jobs:
           file: ./webapp/containers/Containerfile
           push: true
           tags: |
-            quay.io/jasonredhat/rhde-demo:${{ steps.get_version.outputs.VERSION }}
+            quay.io/jasonredhat/ads-b-map:${{ steps.get_version.outputs.VERSION }}
