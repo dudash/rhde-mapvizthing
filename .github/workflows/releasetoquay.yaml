@@ -1,7 +1,7 @@
 name: Build and Push Release
 on:
   release:
-    types: [published, released, edited]
+    types: [published, edited]
 jobs:
   build-and-push:
     name: Build and push to quay.io
