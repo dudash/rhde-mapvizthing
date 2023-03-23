@@ -11,7 +11,7 @@ import animationFrame from '../utils/animationFrame'
 const uuid = require('react-uuid')
 // const vamapjson = require('@app/data/VA-51-virginia-counties.json'); // cb_2015_virginia_county_20m
 const mapjson = require('@app/data/us-counties-10m.json'); //counties, states
-const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://ads-b-service.local/ads-b-states'
+const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://ads-b-service.local:30000/ads-b-states'
 console.log("webapp is polling for flight data by talking to: " + FLIGHTS_API_URL);
 const pointdata: { name: string; coordinates: [number, number] }[] = [
     { name: 'Dulles Airport', coordinates: [-77.45653879999998, 38.9531162] },
