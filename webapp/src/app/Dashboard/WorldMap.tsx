@@ -11,7 +11,7 @@ import animationFrame from '../utils/animationFrame'
 const uuid = require('react-uuid')
 // const vamapjson = require('@app/data/VA-51-virginia-counties.json'); // cb_2015_virginia_county_20m
 const mapjson = require('@app/data/us-counties-10m.json'); //counties, states
-const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://127.0.0.1:8080/ads-b-states'
+const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://ads-b-service.rhde-demo.svc.cluster.local:8080/ads-b-states'
 console.log("webapp is polling for flight data by talking to: " + FLIGHTS_API_URL);
 const pointdata: { name: string; coordinates: [number, number] }[] = [
     { name: 'Dulles Airport', coordinates: [-77.45653879999998, 38.9531162] },
@@ -57,7 +57,7 @@ const WorldMap = (params) => {
     ///
     /// config the map projection here
     ///
-    const projection = geoAlbersUsa().scale(scale).translate([cx, cy])
+    const projection = geoAlbersUsa().scale(currentScale).translate([currentCx, currentCy])
 
     ///
     /// animations can go here - this times out very fast don't do much here or log anything
@@ -106,9 +106,14 @@ const WorldMap = (params) => {
         alert(`Marker: ${pointdata[i].name}`)
     }
 
+    ///
+    /// handle the click event for a flight
+    ///
     const handleFlightClick = (i: number) => {
         alert(`Flight:${flightsData[i].callsign}, Heading:${flightsData[i].true_track}, LAT/LON:${flightsData[i].latitude},${flightsData[i].longitude}`)
     }
+
+    // function to zoom the map
 
     ///
     /// The component returns a map, which is in the form of a SVG
