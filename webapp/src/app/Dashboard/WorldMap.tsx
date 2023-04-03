@@ -4,6 +4,7 @@ import { PageSection, Title } from '@patternfly/react-core'
 import { Button, Tooltip } from '@patternfly/react-core';
 import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-icon';
 import MinusCircleIcon from '@patternfly/react-icons/dist/esm/icons/minus-circle-icon';
+import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
 import {
     Alert,
     AlertProps,
@@ -13,7 +14,7 @@ import {
     InputGroup
 } from '@patternfly/react-core';
 import { Label } from '@patternfly/react-core';
-import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
+import { Badge } from '@patternfly/react-core';
 import * as d3 from 'd3'
 import { geoEqualEarth, geoAlbersUsa, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
@@ -32,9 +33,9 @@ const pointdata: { name: string; coordinates: [number, number] }[] = [
     { name: 'BWI Airport', coordinates: [-76.667663996, 39.171832646] }
 ]
 
-const scale: number = 9500
-const cx: number = -2100
-const cy: number = 500
+const scale: number = 15000
+const cx: number = -3700
+const cy: number = 620
 var currentCx:number = cx
 var currentCy:number = cy
 var currentScale:number = scale
@@ -192,6 +193,7 @@ const WorldMap = (params) => {
         <div className="map-container" onMouseMove={(e) => dragMap(e)} onMouseDown={(e) => changeCursor(e)} onMouseUp={(e) => changeCursor(e)}>
             <div className="map-controls">
                 <React.Fragment>
+                    <Badge key={1}>Flight Count {flightsData.length}</Badge>{' '}
                     <Button onClick={() => zoomMap(true)} icon={<PlusCircleIcon />} variant="tertiary">Zoom</Button>
                     <Button onClick={() => zoomMap(false)} icon={<MinusCircleIcon />} variant="tertiary">Zoom</Button>
                     <Button onClick={() => resetZoom()} variant="tertiary">Reset Map</Button>
@@ -207,7 +209,7 @@ const WorldMap = (params) => {
                 <Alert
                     variant={AlertVariant[variant]}
                     title={title}
-                    timeout={4000}
+                    timeout={7000}
                     actionClose={<AlertActionCloseButton title={title as string} variantLabel={`${variant} alert`} onClose={() => removeAlert(key)} />} key={key}
                 />
                 ))}
