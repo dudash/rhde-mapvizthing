@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { PageSection, Title } from '@patternfly/react-core'
-import { Button } from '@patternfly/react-core';
+import { Button, Tooltip } from '@patternfly/react-core';
 import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-icon';
 import MinusCircleIcon from '@patternfly/react-icons/dist/esm/icons/minus-circle-icon';
 import {
@@ -11,7 +11,9 @@ import {
     AlertActionCloseButton,
     AlertVariant,
     InputGroup
-  } from '@patternfly/react-core';
+} from '@patternfly/react-core';
+import { Label } from '@patternfly/react-core';
+import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
 import * as d3 from 'd3'
 import { geoEqualEarth, geoAlbersUsa, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
@@ -30,9 +32,13 @@ const pointdata: { name: string; coordinates: [number, number] }[] = [
     { name: 'BWI Airport', coordinates: [-76.667663996, 39.171832646] }
 ]
 
-const scale: number = 4000
-const cx: number = -990
-const cy: number = -10
+const scale: number = 9500
+const cx: number = -2100
+const cy: number = 500
+var currentCx:number = cx
+var currentCy:number = cy
+var currentScale:number = scale
+
 ///
 /// The main component
 ///
@@ -41,28 +47,25 @@ const WorldMap = (params) => {
     const [geographies, setGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [moreGeographies, setMoreGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [flightsData, setFlightsData] = useState<[] | Array<Feature<Geometry | null>>>([])
+    const [refresh, setRefresh] = React.useState(0)
     var refreshTimer:number = 0
-    var currentCx:number = cx
-    var currentCy:number = cy
-    var currentScale:number = scale
+
+    ///
+    /// Popup Alerts Component
+    ///
     const [alerts, setAlerts] = React.useState<Partial<AlertProps>[]>([]);
-
-    const addAlert = (title: string, variant: AlertProps['variant'], key: React.Key) => {
-        setAlerts(prevAlerts => [...prevAlerts, { title, variant, key }]);
-    };
-    const removeAlert = (key: React.Key) => {
-        setAlerts(prevAlerts => [...prevAlerts.filter(alert => alert.key !== key)]);
-    };
     const btnClasses = ['pf-c-button', 'pf-m-secondary'].join(' ');
+    /// add an alert
+    const addAlert = (title: string, variant: AlertProps['variant'], key: React.Key) => { setAlerts(prevAlerts => [...prevAlerts, { title, variant, key }]); };
+    /// remove an alert
+    const removeAlert = (key: React.Key) => { setAlerts(prevAlerts => [...prevAlerts.filter(alert => alert.key !== key)]); };    
+    /// create Id for alert so we can distinguish them when they have the same text
     const getUniqueId = () => new Date().getTime();
-    const addInfoAlert = (whatInfo: string) => {
-        addAlert(whatInfo, 'info', getUniqueId());
-    };
+    /// create an alert of Info type
+    const addInfoAlert = (whatInfo: string) => { addAlert(whatInfo, 'info', getUniqueId()); };
 
+    ///
     useEffect(() => {
-        // const vamapFeatures: Array<Feature<Geometry | null>> = ((feature(vamapjson, vamapjson.objects.cb_2015_virginia_county_20m) as unknown) as FeatureCollection).features
-        // setAltMapGeos(vamapFeatures)
-
         const mapFeatures: Array<Feature<Geometry | null>> = ((feature(mapjson, mapjson.objects.counties) as unknown) as FeatureCollection).features
         setGeographies(mapFeatures)
 
@@ -79,7 +82,7 @@ const WorldMap = (params) => {
     }, [])
 
     ///
-    /// config the map projection here
+    /// config the map projection here - we also put this into a viewbox in SVG form below
     ///
     const projection = geoAlbersUsa().scale(currentScale).translate([currentCx, currentCy])
 
@@ -127,7 +130,6 @@ const WorldMap = (params) => {
     /// handle the click event for a marker
     ///
     const handleMarkerClick = (i: number) => {
-        // TODO give this a timeout to remove the alert
         addInfoAlert(`Marker: ${pointdata[i].name}`)
     }
 
@@ -135,7 +137,6 @@ const WorldMap = (params) => {
     /// handle the click event for a flight
     ///
     const handleFlightClick = (i: number) => {
-        // TODO give this a timeout to remove the alert
         addInfoAlert(`Flight:${flightsData[i].callsign}, Heading:${flightsData[i].true_track}, LAT/LON:${flightsData[i].latitude},${flightsData[i].longitude}`)
     }
 
@@ -145,26 +146,60 @@ const WorldMap = (params) => {
     const zoomMap = (zoomIn: boolean) => {
         if (zoomIn) {
             currentScale = currentScale * 1.1
-            // addInfoAlert('zoom in')
+            currentCx = currentCx * 1.1
+            currentCy = currentCy * 1.1
         } else {
             currentScale = currentScale * 0.9
-            // addInfoAlert('zoom out')
+            currentCx = currentCx * 0.9
+            currentCy = currentCy * 0.9
         }
-        projection.scale(currentScale) // TODO is this not updating?
+        projection.scale(currentScale).translate([-currentCx, -currentCy])
+        setRefresh(refresh + 1)
+    }
+
+    // function to change the cursor when the mouse button is down
+    const changeCursor = (e: any) => {
+        if (e.buttons !== 1) { 
+            document.body.style.cursor = 'default'
+            return
+        }
+        document.body.style.cursor = 'grabbing'
+    }
+
+    // function to click and drag the map
+    const dragMap = (e: any) => {
+        // return is mouse button is not down
+        if (e.buttons !== 1) { return }
+        currentCx = currentCx + e.movementX
+        currentCy = currentCy + e.movementY
+        projection.scale(currentScale).translate([-currentCx, -currentCy])
+        setRefresh(refresh + 1)
+    }
+
+    // fundtion to reset the map zoon
+    const resetZoom = () => {
+        currentScale = scale
+        currentCx = cx
+        currentCy = cy
+        projection.scale(currentScale).translate([-currentCx, -currentCy])
+        setRefresh(refresh + 1)
     }
 
     ///
     /// The component returns a map, which is in the form of a SVG
     ///
     return (
-        <div className="map-container">
+        <div className="map-container" onMouseMove={(e) => dragMap(e)} onMouseDown={(e) => changeCursor(e)} onMouseUp={(e) => changeCursor(e)}>
             <div className="map-controls">
                 <React.Fragment>
                     <Button onClick={() => zoomMap(true)} icon={<PlusCircleIcon />} variant="tertiary">Zoom</Button>
                     <Button onClick={() => zoomMap(false)} icon={<MinusCircleIcon />} variant="tertiary">Zoom</Button>
-                    <Button onClick={() => addInfoAlert(`${currentScale}`)} type="button" className={btnClasses}>
-                        What is the current zoom?
-                    </Button>
+                    <Button onClick={() => resetZoom()} variant="tertiary">Reset Map</Button>
+                    <Tooltip content="Click and drag to move map. Single click on markers for info">
+                        <Button component="a" isAriaDisabled href="https://pf4.patternfly.org/" target="_blank" variant="tertiary">
+                            Click and drag to move map
+                        </Button>
+                    </Tooltip>
                 </React.Fragment>
             </div>
             <AlertGroup isToast isLiveRegion>
@@ -177,18 +212,8 @@ const WorldMap = (params) => {
                 />
                 ))}
             </AlertGroup>
-            <svg width={scale * 3} height={scale * 3} viewBox="0 0 800 450">
-                {/* <g>
-                    {(altmapgeos as []).map((d, i) => (
-                        <path
-                            key={`path-${uuid()}`}
-                            d={geoPath().projection(projection)(d) as string}
-                            fill={`rgba(38,50,56,${(1 / (altmapgeos ? altmapgeos.length : 0)) * i})`}
-                            stroke="aliceblue"
-                            strokeWidth={0.5}
-                        />
-                    ))}
-                </g> */}
+            <svg width={window.innerWidth} height={window.innerHeight-200} viewBox={`0 0 800 450`}>
+            {/* <svg width={scale * 3} height={scale * 3} viewBox="0 0 800 450"> */}
                 <g>
                     {(moreGeographies as []).map((d, i) => (
                         <path
@@ -217,10 +242,10 @@ const WorldMap = (params) => {
                             key={`marker-${uuid()}`}
                             cx={returnProjectionValueWhenValid(d.coordinates, 0)}
                             cy={returnProjectionValueWhenValid(d.coordinates, 1)}
-                            r={1}
+                            r={6}
                             fill="#E91E63"
                             stroke="#FFFFFF"
-                            strokeWidth={.5}
+                            strokeWidth={1}
                             onClick={() => handleMarkerClick(i)}
                         />
                     ))}
@@ -232,7 +257,7 @@ const WorldMap = (params) => {
                         <svg className="airsvg" key={`marker-${uuid()}`}
                         x={returnProjectionValueWhenValid([d.longitude, d.latitude], 0)}
                         y={returnProjectionValueWhenValid([d.longitude, d.latitude], 1)}
-                        width="5" height="5"
+                        width="30" height="30"
                         viewBox="0 0 512 512"
                         onClick={() => handleFlightClick(i)}
                         >
