@@ -1,6 +1,17 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { PageSection, Title } from '@patternfly/react-core'
+import { Button } from '@patternfly/react-core';
+import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-icon';
+import MinusCircleIcon from '@patternfly/react-icons/dist/esm/icons/minus-circle-icon';
+import {
+    Alert,
+    AlertProps,
+    AlertGroup,
+    AlertActionCloseButton,
+    AlertVariant,
+    InputGroup
+  } from '@patternfly/react-core';
 import * as d3 from 'd3'
 import { geoEqualEarth, geoAlbersUsa, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
@@ -34,6 +45,19 @@ const WorldMap = (params) => {
     var currentCx:number = cx
     var currentCy:number = cy
     var currentScale:number = scale
+    const [alerts, setAlerts] = React.useState<Partial<AlertProps>[]>([]);
+
+    const addAlert = (title: string, variant: AlertProps['variant'], key: React.Key) => {
+        setAlerts(prevAlerts => [...prevAlerts, { title, variant, key }]);
+    };
+    const removeAlert = (key: React.Key) => {
+        setAlerts(prevAlerts => [...prevAlerts.filter(alert => alert.key !== key)]);
+    };
+    const btnClasses = ['pf-c-button', 'pf-m-secondary'].join(' ');
+    const getUniqueId = () => new Date().getTime();
+    const addInfoAlert = (whatInfo: string) => {
+        addAlert(whatInfo, 'info', getUniqueId());
+    };
 
     useEffect(() => {
         // const vamapFeatures: Array<Feature<Geometry | null>> = ((feature(vamapjson, vamapjson.objects.cb_2015_virginia_county_20m) as unknown) as FeatureCollection).features
@@ -103,23 +127,56 @@ const WorldMap = (params) => {
     /// handle the click event for a marker
     ///
     const handleMarkerClick = (i: number) => {
-        alert(`Marker: ${pointdata[i].name}`)
+        // TODO give this a timeout to remove the alert
+        addInfoAlert(`Marker: ${pointdata[i].name}`)
     }
 
     ///
     /// handle the click event for a flight
     ///
     const handleFlightClick = (i: number) => {
-        alert(`Flight:${flightsData[i].callsign}, Heading:${flightsData[i].true_track}, LAT/LON:${flightsData[i].latitude},${flightsData[i].longitude}`)
+        // TODO give this a timeout to remove the alert
+        addInfoAlert(`Flight:${flightsData[i].callsign}, Heading:${flightsData[i].true_track}, LAT/LON:${flightsData[i].latitude},${flightsData[i].longitude}`)
     }
 
-    // function to zoom the map
+    ///
+    /// function to zoom the map
+    ///
+    const zoomMap = (zoomIn: boolean) => {
+        if (zoomIn) {
+            currentScale = currentScale * 1.1
+            // addInfoAlert('zoom in')
+        } else {
+            currentScale = currentScale * 0.9
+            // addInfoAlert('zoom out')
+        }
+        projection.scale(currentScale) // TODO is this not updating?
+    }
 
     ///
     /// The component returns a map, which is in the form of a SVG
     ///
     return (
-        <>
+        <div className="map-container">
+            <div className="map-controls">
+                <React.Fragment>
+                    <Button onClick={() => zoomMap(true)} icon={<PlusCircleIcon />} variant="tertiary">Zoom</Button>
+                    <Button onClick={() => zoomMap(false)} icon={<MinusCircleIcon />} variant="tertiary">Zoom</Button>
+                    <Button onClick={() => addInfoAlert(`${currentScale}`)} type="button" className={btnClasses}>
+                        What is the current zoom?
+                    </Button>
+                </React.Fragment>
+            </div>
+            <AlertGroup isToast isLiveRegion>
+                {alerts.map(({ key, variant, title }) => (
+                <Alert
+                    variant={AlertVariant[variant]}
+                    title={title}
+                    timeout={4000}
+                    actionClose={<AlertActionCloseButton title={title as string} variantLabel={`${variant} alert`} onClose={() => removeAlert(key)} />} key={key}
+                />
+                ))}
+            </AlertGroup>
             <svg width={scale * 3} height={scale * 3} viewBox="0 0 800 450">
                 {/* <g>
                     {(altmapgeos as []).map((d, i) => (
@@ -187,7 +244,7 @@ const WorldMap = (params) => {
                     ))}
                 </g>
             </svg>
-        </>
+        </div>
     )
 }
 
