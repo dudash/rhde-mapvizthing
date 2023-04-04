@@ -55,7 +55,6 @@ const WorldMap = (params) => {
     /// Popup Alerts Component
     ///
     const [alerts, setAlerts] = React.useState<Partial<AlertProps>[]>([]);
-    const btnClasses = ['pf-c-button', 'pf-m-secondary'].join(' ');
     /// add an alert
     const addAlert = (title: string, variant: AlertProps['variant'], key: React.Key) => { setAlerts(prevAlerts => [...prevAlerts, { title, variant, key }]); };
     /// remove an alert
@@ -207,10 +206,10 @@ const WorldMap = (params) => {
             <AlertGroup isToast isLiveRegion>
                 {alerts.map(({ key, variant, title }) => (
                 <Alert
-                    variant={AlertVariant[variant]}
+                    variant={AlertVariant[variant as keyof typeof AlertVariant]}
                     title={title}
                     timeout={7000}
-                    actionClose={<AlertActionCloseButton title={title as string} variantLabel={`${variant} alert`} onClose={() => removeAlert(key)} />} key={key}
+                    actionClose={<AlertActionCloseButton title={title as string} variantLabel={`${variant} alert`} onClose={() => removeAlert(key as React.Key)} />} key={key}
                 />
                 ))}
             </AlertGroup>
