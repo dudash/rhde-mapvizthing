@@ -28,9 +28,9 @@ const mapjson = require('@app/data/us-counties-10m.json'); //counties, states
 const FLIGHTS_API_URL = process.env.REACT_APP_FLIGHT_API_SERVICE_URL || 'http://ads-b-service.local:30000/ads-b-states'
 console.log("webapp is polling for flight data by talking to: " + FLIGHTS_API_URL);
 const pointdata: { name: string; coordinates: [number, number] }[] = [
-    { name: 'Dulles Airport', coordinates: [-77.45653879999998, 38.9531162] },
-    { name: 'National Airport', coordinates: [-77.035999856, 38.851329928] },
-    { name: 'BWI Airport', coordinates: [-76.667663996, 39.171832646] }
+    { name: 'Dulles International Airport (IAD)', coordinates: [-77.45653879999998, 38.9531162] },
+    { name: 'Reagan National Airport (DCA)', coordinates: [-77.035999856, 38.851329928] },
+    { name: 'Thurgood Marshall Airport (BWI)', coordinates: [-76.667663996, 39.171832646] }
 ]
 
 const scale: number = 15000
