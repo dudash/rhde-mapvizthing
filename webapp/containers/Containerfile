@@ -11,6 +11,7 @@ RUN ["/bin/bash", "-c", "rm -rf ./__mocks__ ./.screenshots ./.storybook ./storie
 
 FROM registry.access.redhat.com/ubi8/nodejs-18-minimal
 COPY --from=build /opt/app-root/src ./
+USER root
 RUN chgrp -R 0 ./ && chmod -R g=u ./
 EXPOSE 8080
 USER 1001
