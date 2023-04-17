@@ -3,6 +3,7 @@ LABEL io.redhatgov.mapvizthing.intermediate=true
 WORKDIR /opt/app-root/src
 USER root
 RUN chmod -R 777 /opt/app-root/src
+RUN chgrp -R 0 /opt/app-root/src && chmod -R g=u /opt/app-root/src
 ADD ../package*.json ./
 RUN npm install
 ADD ../. .
@@ -11,9 +12,6 @@ RUN ["/bin/bash", "-c", "rm -rf ./__mocks__ ./.screenshots ./.storybook ./storie
 
 FROM registry.access.redhat.com/ubi8/nodejs-18-minimal
 COPY --from=build /opt/app-root/src ./
-USER root
-RUN chgrp -R 0 ./ && chmod -R g=u ./
 EXPOSE 8080
 USER 1001
-RUN chown -R 1001:0 ./
 CMD ["npm", "start"]
