@@ -39,6 +39,7 @@ const cy: number = 620
 var currentCx:number = cx
 var currentCy:number = cy
 var currentScale:number = scale
+const pollTime:number = 0.5
 
 ///
 /// The main component
@@ -91,8 +92,8 @@ const WorldMap = (params) => {
     ///
     animationFrame((args) => {
         refreshTimer += args.delta
-        // if refresh timer is greater than 1/4 second, GET the data
-        if (refreshTimer >= 0.25) {
+        // if refresh timer is greater than poll time, GET the data
+        if (refreshTimer >= pollTime) {
             refreshTimer = 0
             try {
                 axios.get(FLIGHTS_API_URL).then((response) => {
