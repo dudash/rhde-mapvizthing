@@ -4,7 +4,7 @@ import { WorldMap } from './WorldMap';
 
 const Dashboard: React.FunctionComponent = () => (
   <PageSection>
-    <Title headingLevel="h1" size="lg">Live Flight Tracks</Title>
+    {/* <Title headingLevel="h1" size="xl">Live Flight Tracks</Title> */}
     <WorldMap/>
   </PageSection>
 )

@@ -2,9 +2,11 @@ import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { PageSection, Title } from '@patternfly/react-core'
 import { Button, Tooltip } from '@patternfly/react-core';
+import { Banner, Flex, FlexItem } from '@patternfly/react-core';
 import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-icon';
 import MinusCircleIcon from '@patternfly/react-icons/dist/esm/icons/minus-circle-icon';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
+import ClockIcon from '@patternfly/react-icons/dist/esm/icons/clock-icon';
 import {
     Alert,
     AlertProps,
@@ -39,7 +41,7 @@ const cy: number = 620
 var currentCx:number = cx
 var currentCy:number = cy
 var currentScale:number = scale
-const pollTime:number = 0.5
+const pollTime:number = 0.25
 
 ///
 /// The main component
@@ -49,6 +51,8 @@ const WorldMap = (params) => {
     const [geographies, setGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [moreGeographies, setMoreGeographies] = useState<[] | Array<Feature<Geometry | null>>>([])
     const [flightsData, setFlightsData] = useState<[] | Array<Feature<Geometry | null>>>([])
+    const [serverTimeElapsed, setServerTimeElapsed] = useState("0")
+    const [serverReportTime, setServerReportTime] = useState("0")
     const [refresh, setRefresh] = React.useState(0)
     var refreshTimer:number = 0
 
@@ -76,6 +80,16 @@ const WorldMap = (params) => {
         try {
             axios.get(FLIGHTS_API_URL).then((response) => {
                 setFlightsData(response.data.states)
+                // if report time is available, convert it to a date in the format YYYY:MM:DD,HH:MM:SS and set it
+                if (response.data.report_time) {
+                    var reportTime = new Date(response.data.report_time * 1000)
+                    setServerReportTime(reportTime.toISOString())
+                }
+                // if the elapsed time is available convert it from microseconds to fractions of a second
+                if (response.data.elapsed_time_us) {
+                    var elapsedTime:number = response.data.elapsed_time_us / 1000
+                    setServerTimeElapsed(elapsedTime.toString()+" ms")
+                }
             });
         } catch (error) {
             console.error('error fetching flight data from external API service', error)
@@ -98,6 +112,16 @@ const WorldMap = (params) => {
             try {
                 axios.get(FLIGHTS_API_URL).then((response) => {
                     setFlightsData(response.data.states)
+                    // if report time is available, convert it to a date in the format YYYY:MM:DD,HH:MM:SS and set it
+                    if (response.data.report_time) {
+                        var reportTime = new Date(response.data.report_time * 1000)
+                        setServerReportTime(reportTime.toISOString())
+                    }
+                    // if the elapsed time is available convert it from microseconds to fractions of a second
+                    if (response.data.elapsed_time_us) {
+                        var elapsedTime:number = response.data.elapsed_time_us / 1000
+                        setServerTimeElapsed(elapsedTime.toString()+" ms")
+                    }
                 });
             } catch (error) {
                 console.error('error fetching flight data from external API service', error)
@@ -191,19 +215,20 @@ const WorldMap = (params) => {
     ///
     return (
         <div className="map-container" onMouseMove={(e) => dragMap(e)} onMouseDown={(e) => changeCursor(e)} onMouseUp={(e) => changeCursor(e)}>
-            <div className="map-controls">
-                <React.Fragment>
-                    <Badge key={1}>Flight Count {flightsData.length}</Badge>{' '}
-                    <Button onClick={() => zoomMap(true)} icon={<PlusCircleIcon />} variant="tertiary">Zoom</Button>
-                    <Button onClick={() => zoomMap(false)} icon={<MinusCircleIcon />} variant="tertiary">Zoom</Button>
-                    <Button onClick={() => resetZoom()} variant="tertiary">Reset Map</Button>
-                    <Tooltip content="Click and drag to move map. Single click on markers for info">
-                        <Button component="a" isAriaDisabled href="https://pf4.patternfly.org/" target="_blank" variant="tertiary">
-                            Click and drag to move map
-                        </Button>
-                    </Tooltip>
-                </React.Fragment>
+            <div className="map-statusbar">
+                <Banner variant="info">                            
+                    <Flex spaceItems={{ default: 'spaceItemsXs' }} flex={{ default: 'flex_1' }}>
+                        <FlexItem>
+                            <Badge key={1}>Flight Count {flightsData.length}</Badge>{' '}
+                        </FlexItem>
+                        <FlexItem align={{ default: 'alignRight' }}><ClockIcon /></FlexItem>
+                        <Tooltip content={`Server Elaspsed Time: ${serverTimeElapsed}`}>
+                            <FlexItem>| <b>Report Time:</b> {serverReportTime}</FlexItem>
+                        </Tooltip>
+                    </Flex>
+                </Banner>
             </div>
+
             <AlertGroup isToast isLiveRegion>
                 {alerts.map(({ key, variant, title }) => (
                 <Alert
@@ -271,6 +296,25 @@ const WorldMap = (params) => {
                     ))}
                 </g>
             </svg>
+
+            <div className="map-controls">
+                <React.Fragment>
+                    <Flex>
+                        <Flex spaceItems={{ default: 'spaceItemsXs' }}>
+                            <Button onClick={() => zoomMap(true)} icon={<PlusCircleIcon />} variant="tertiary">Zoom</Button>
+                            <Button onClick={() => zoomMap(false)} icon={<MinusCircleIcon />} variant="tertiary">Zoom</Button>
+                            <Button onClick={() => resetZoom()} variant="tertiary">Reset Map</Button>
+                        </Flex>
+                            <FlexItem align={{ default: 'alignRight' }}>
+                                <Tooltip content="Click and drag to move map. Single click on markers for info">
+                                    <Button component="a" isAriaDisabled href="https://pf4.patternfly.org/" target="_blank" variant="tertiary">
+                                        Click and drag to move map
+                                    </Button>
+                                </Tooltip>
+                            </FlexItem>
+                    </Flex>
+                </React.Fragment>
+            </div>
         </div>
     )
 }
